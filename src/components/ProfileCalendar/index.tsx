@@ -26,7 +26,7 @@ const ProfileCalendar = () => {
   }, []);
 
  
-  console.log(schedule)
+
 
   return (
     <div className="profile-calendar-container">
