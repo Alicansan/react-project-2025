@@ -25,6 +25,8 @@ const ProfileCalendar = () => {
     dispatch(fetchSchedule() as any);
   }, []);
 
+ 
+
   return (
     <div className="profile-calendar-container">
       <ProfileCard profile={auth} />
