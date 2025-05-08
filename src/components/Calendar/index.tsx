@@ -19,6 +19,7 @@ import "../profileCalendar.scss";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import EventDetailsPopup from "../EventDetailsPopup.tsx";
 
 dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
@@ -80,7 +81,17 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   const [initialDate, setInitialDate] = useState<Date>(
     dayjs(schedule?.scheduleStartDate).toDate()
   );
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
+
+
+  useEffect(() => {
+    if (schedule?.scheduleStartDate && calendarRef.current) {
+      const startDate = dayjs(schedule.scheduleStartDate).toDate();
+      calendarRef.current.getApi().gotoDate(startDate);
+    }
+  }, [schedule?.scheduleStartDate]);
+  
   const getPlugins = () => {
     const plugins = [dayGridPlugin];
 
@@ -178,6 +189,12 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   useEffect(() => {
     setSelectedStaffId(schedule?.staffs?.[0]?.id);
     generateStaffBasedCalendar();
+    //Burası schedule startDate varsa takvimin başlangıç tarihi güncellenmesi için
+    if (schedule?.scheduleStartDate && calendarRef.current) {
+      const startDate = dayjs(schedule.scheduleStartDate).toDate();
+      setInitialDate(startDate);
+      calendarRef.current.getApi().gotoDate(startDate);
+    }
   }, [schedule]);
 
   useEffect(() => {
@@ -192,6 +209,38 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     );
   };
 
+
+  const handleStaffSelection = (staffId: string) => {
+    setSelectedStaffId(staffId);
+    
+    // Staff değişitiğinde takvimin başlangıç tarihi güncellenmesi
+    if (calendarRef.current && schedule?.scheduleStartDate) {
+      calendarRef.current.getApi().gotoDate(dayjs(schedule.scheduleStartDate).toDate());
+    }
+  };
+//popup açma 
+  const handleEventClick = (info: any) => {
+    const eventId = info.event.id;
+    const assignment = getAssigmentById(eventId);
+    
+    if (assignment) {
+      const shift = getShiftById(assignment.shiftId);
+      const staff = getStaffById(assignment.staffId);
+      
+      setSelectedEvent({
+        id: eventId,
+        title: shift?.name || 'Unknown Shift',
+        date: dayjs.utc(assignment.shiftStart).format('YYYY-MM-DD'),
+        startTime: dayjs.utc(assignment.shiftStart).format('HH:mm'),
+        endTime: dayjs.utc(assignment.shiftEnd).format('HH:mm'),
+        staffName: staff?.name || 'Unknown Staff'
+      });
+    }
+  };
+  //popup kapama
+  const closeEventPopup = () => {
+    setSelectedEvent(null);
+  };
   return (
     <div className="calendar-section">
       <div className="calendar-wrapper">
@@ -199,7 +248,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           {schedule?.staffs?.map((staff: any) => (
             <div
               key={staff.id}
-              onClick={() => setSelectedStaffId(staff.id)}
+              onClick={() => handleStaffSelection(staff.id)}
               className={`staff ${
                 staff.id === selectedStaffId ? "active" : ""
               }`}
@@ -226,6 +275,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           editable={true}
           eventOverlap={true}
           eventDurationEditable={false}
+          eventClick={handleEventClick}
           initialView="dayGridMonth"
           initialDate={initialDate}
           events={events}
@@ -287,6 +337,10 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
             );
           }}
         />
+        {selectedEvent && (
+          
+  <EventDetailsPopup event={selectedEvent} onClose={closeEventPopup} />
+)}
       </div>
     </div>
   );
