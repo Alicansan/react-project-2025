@@ -425,14 +425,414 @@
     p {
       color: inherit;
     }
+
+    &.bg-one,
+    &.bg-two,
+    &.bg-three,
+    &.bg-four,
+    &.bg-five,
+    &.bg-six,
+    &.bg-seven,
+    &.bg-eight,
+    &.bg-nine,
+    &.bg-ten,
+    &.bg-eleven,
+    &.bg-twelve,
+    &.bg-thirteen,
+    &.bg-fourteen,
+    &.bg-fifteen,
+    &.bg-sixteen,
+    &.bg-seventeen,
+    &.bg-eighteen,
+    &.bg-nineteen,
+    &.bg-twenty,
+    &.bg-twenty-one,
+    &.bg-twenty-two,
+    &.bg-twenty-three,
+    &.bg-twenty-four,
+    &.bg-twenty-five,
+    &.bg-twenty-six,
+    &.bg-twenty-seven,
+    &.bg-twenty-eight,
+    &.bg-twenty-nine,
+    &.bg-thirty,
+    &.bg-thirty-one,
+    &.bg-thirty-two,
+    &.bg-thirty-three,
+    &.bg-thirty-four,
+    &.bg-thirty-five,
+    &.bg-thirty-six,
+    &.bg-thirty-seven,
+    &.bg-thirty-eight,
+    &.bg-thirty-nine,
+    &.bg-forty {
+      color: #000000;
+      border-color: rgba(255, 255, 255, 0.5);
+      border-width: 2px;
+
+      svg path {
+        fill: #000000;
+      }
+
+      &.active {
+        color: #ffffff;
+        filter: brightness(0.8);
+        border-color: #ffffff;
+        border-width: 2px;
+
+        svg path {
+          fill: #ffffff;
+        }
+      }
+    }
+
+    // Dark background colors should have white text
+    &.bg-six,
+    &.bg-seven,
+    &.bg-eight,
+    &.bg-nine,
+    &.bg-eleven,
+    &.bg-fifteen,
+    &.bg-sixteen,
+    &.bg-seventeen,
+    &.bg-nineteen,
+    &.bg-twenty-six,
+    &.bg-thirty,
+    &.bg-thirty-one,
+    &.bg-thirty-four,
+    &.bg-thirty-six,
+    &.bg-thirty-eight {
+      color: #ffffff;
+
+      svg path {
+        fill: #ffffff;
+      }
+
+      &.active {
+        filter: brightness(1.2);
+      }
+    }
+
+    // Background colors for each class
+    &.bg-one {
+      background-color: #fcc729;
+    }
+    &.bg-two {
+      background-color: #ff8847;
+    }
+    &.bg-three {
+      background-color: #c0c033;
+    }
+    &.bg-four {
+      background-color: #32a852;
+    }
+    &.bg-five {
+      background-color: #32a8a2;
+    }
+    &.bg-six {
+      background-color: #327ba8;
+    }
+    &.bg-seven {
+      background-color: #3244a8;
+    }
+    &.bg-eight {
+      background-color: #5a32a8;
+    }
+    &.bg-nine {
+      background-color: #a832a4;
+    }
+    &.bg-ten {
+      background-color: #fffe88;
+    }
+    &.bg-eleven {
+      background-color: #c2068a;
+    }
+    &.bg-twelve {
+      background-color: #c28d06;
+    }
+    &.bg-thirteen {
+      background-color: #a2c206;
+    }
+    &.bg-fourteen {
+      background-color: #3bc206;
+    }
+    &.bg-fifteen {
+      background-color: #108f7c;
+    }
+    &.bg-sixteen {
+      background-color: #10278f;
+    }
+    &.bg-seventeen {
+      background-color: #51108f;
+    }
+    &.bg-eighteen {
+      background-color: #118f22;
+    }
+    &.bg-nineteen {
+      background-color: #620878;
+    }
+    &.bg-twenty {
+      background-color: #40690a;
+    }
+    &.bg-twenty-one {
+      background-color: #81f4cf;
+    }
+    &.bg-twenty-two {
+      background-color: #09aa1d;
+    }
+    &.bg-twenty-three {
+      background-color: #60d3e1;
+    }
+    &.bg-twenty-four {
+      background-color: #8de149;
+    }
+    &.bg-twenty-five {
+      background-color: #74db6c;
+    }
+    &.bg-twenty-six {
+      background-color: #47216b;
+    }
+    &.bg-twenty-seven {
+      background-color: #447804;
+    }
+    &.bg-twenty-eight {
+      background-color: #933862;
+    }
+    &.bg-twenty-nine {
+      background-color: #7ff932;
+    }
+    &.bg-thirty {
+      background-color: #2a7626;
+    }
+    &.bg-thirty-one {
+      background-color: #b6065f;
+    }
+    &.bg-thirty-two {
+      background-color: #52e6d3;
+    }
+    &.bg-thirty-three {
+      background-color: #c8b062;
+    }
+    &.bg-thirty-four {
+      background-color: #a749b7;
+    }
+    &.bg-thirty-five {
+      background-color: #c1e87c;
+    }
+    &.bg-thirty-six {
+      background-color: #13249d;
+    }
+    &.bg-thirty-seven {
+      background-color: #01c40b;
+    }
+    &.bg-thirty-eight {
+      background-color: #2e6332;
+    }
+    &.bg-thirty-nine {
+      background-color: #70ae19;
+    }
+    &.bg-forty {
+      background-color: #b3524c;
+    }
   }
 }
 
-.highlightedPair {
-  content: "";
-  border-bottom: 5px solid rgba(194, 6, 138, 0.5) !important;
+/* Create a specific class for highlighted off days */
+.highlighted-date-orange {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background-color: rgba(255, 140, 0, 0.6);
+    border-radius: 2px;
+  }
 }
 
+/* Styles for date cell with overlapping staff */
+.fc-daygrid-day-top {
+  flex-direction: column !important;
+  align-items: center;
+
+  .date-number {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 2px;
+  }
+
+  .overlap-indicators {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1px;
+    position: relative;
+
+    .overlap-count {
+      position: absolute;
+      top: -18px;
+      right: 0;
+      font-size: 9px;
+      background-color: #19979c;
+      color: white;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: help;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    &:hover .overlap-count {
+      opacity: 1;
+    }
+  }
+
+  .overlap-indicator {
+    height: 3px;
+    width: 100%;
+    margin-top: 1px;
+    border-radius: 1px;
+    cursor: help;
+    transition: all 0.2s ease;
+
+    &:hover {
+      height: 4px;
+      transform: scaleX(1.05);
+      box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+/* Apply background colors to overlap indicators */
+.overlap-indicator {
+  &.bg-one {
+    background-color: #fcc729;
+  }
+  &.bg-two {
+    background-color: #ff8847;
+  }
+  &.bg-three {
+    background-color: #c0c033;
+  }
+  &.bg-four {
+    background-color: #32a852;
+  }
+  &.bg-five {
+    background-color: #32a8a2;
+  }
+  &.bg-six {
+    background-color: #327ba8;
+  }
+  &.bg-seven {
+    background-color: #3244a8;
+  }
+  &.bg-eight {
+    background-color: #5a32a8;
+  }
+  &.bg-nine {
+    background-color: #a832a4;
+  }
+  &.bg-ten {
+    background-color: #fffe88;
+  }
+  &.bg-eleven {
+    background-color: #c2068a;
+  }
+  &.bg-twelve {
+    background-color: #c28d06;
+  }
+  &.bg-thirteen {
+    background-color: #a2c206;
+  }
+  &.bg-fourteen {
+    background-color: #3bc206;
+  }
+  &.bg-fifteen {
+    background-color: #108f7c;
+  }
+  &.bg-sixteen {
+    background-color: #10278f;
+  }
+  &.bg-seventeen {
+    background-color: #51108f;
+  }
+  &.bg-eighteen {
+    background-color: #118f22;
+  }
+  &.bg-nineteen {
+    background-color: #620878;
+  }
+  &.bg-twenty {
+    background-color: #40690a;
+  }
+  &.bg-twenty-one {
+    background-color: #81f4cf;
+  }
+  &.bg-twenty-two {
+    background-color: #09aa1d;
+  }
+  &.bg-twenty-three {
+    background-color: #60d3e1;
+  }
+  &.bg-twenty-four {
+    background-color: #8de149;
+  }
+  &.bg-twenty-five {
+    background-color: #74db6c;
+  }
+  &.bg-twenty-six {
+    background-color: #47216b;
+  }
+  &.bg-twenty-seven {
+    background-color: #447804;
+  }
+  &.bg-twenty-eight {
+    background-color: #933862;
+  }
+  &.bg-twenty-nine {
+    background-color: #7ff932;
+  }
+  &.bg-thirty {
+    background-color: #2a7626;
+  }
+  &.bg-thirty-one {
+    background-color: #b6065f;
+  }
+  &.bg-thirty-two {
+    background-color: #52e6d3;
+  }
+  &.bg-thirty-three {
+    background-color: #c8b062;
+  }
+  &.bg-thirty-four {
+    background-color: #a749b7;
+  }
+  &.bg-thirty-five {
+    background-color: #c1e87c;
+  }
+  &.bg-thirty-six {
+    background-color: #13249d;
+  }
+  &.bg-thirty-seven {
+    background-color: #01c40b;
+  }
+  &.bg-thirty-eight {
+    background-color: #2e6332;
+  }
+  &.bg-thirty-nine {
+    background-color: #70ae19;
+  }
+  &.bg-forty {
+    background-color: #b3524c;
+  }
+}
 
 .event-popup-overlay {
   position: fixed;

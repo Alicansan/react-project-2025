@@ -3,23 +3,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useRef, useState } from "react";
-
 import type { ScheduleInstance } from "../../models/schedule";
 import type { UserInstance } from "../../models/user";
-
-import FullCalendar from "@fullcalendar/react";
-
-import interactionPlugin from "@fullcalendar/interaction";
-import dayGridPlugin from "@fullcalendar/daygrid";
-
-import type { EventInput } from "@fullcalendar/core/index.js";
-
-import "../profileCalendar.scss";
-
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import EventDetailsPopup from "../EventDetailsPopup.tsx";
+import "../profileCalendar.scss";
+import FullCalendar from "@fullcalendar/react";
+import FullCalendarComponent from "./FullCalendarComponent";
+import StaffList from "./StaffList";
+import EventDetailsPopup from "./EventDetailsPopup";
+import {
+  getColorClass,
+  getShiftById,
+  getAssigmentById,
+  getStaffById,
+  getDatesBetween,
+} from "./utils";
+import type { EventInput } from "@fullcalendar/core/index.js";
 
 dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
@@ -28,49 +29,6 @@ type CalendarContainerProps = {
   schedule: ScheduleInstance;
   auth: UserInstance;
 };
-
-const classes = [
-  "bg-one",
-  "bg-two",
-  "bg-three",
-  "bg-four",
-  "bg-five",
-  "bg-six",
-  "bg-seven",
-  "bg-eight",
-  "bg-nine",
-  "bg-ten",
-  "bg-eleven",
-  "bg-twelve",
-  "bg-thirteen",
-  "bg-fourteen",
-  "bg-fifteen",
-  "bg-sixteen",
-  "bg-seventeen",
-  "bg-eighteen",
-  "bg-nineteen",
-  "bg-twenty",
-  "bg-twenty-one",
-  "bg-twenty-two",
-  "bg-twenty-three",
-  "bg-twenty-four",
-  "bg-twenty-five",
-  "bg-twenty-six",
-  "bg-twenty-seven",
-  "bg-twenty-eight",
-  "bg-twenty-nine",
-  "bg-thirty",
-  "bg-thirty-one",
-  "bg-thirty-two",
-  "bg-thirty-three",
-  "bg-thirty-four",
-  "bg-thirty-five",
-  "bg-thirty-six",
-  "bg-thirty-seven",
-  "bg-thirty-eight",
-  "bg-thirty-nine",
-  "bg-forty",
-];
 
 const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   const calendarRef = useRef<FullCalendar>(null);
@@ -82,8 +40,9 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     dayjs(schedule?.scheduleStartDate).toDate()
   );
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
-
-
+  const [staffOverlaps, setStaffOverlaps] = useState<Record<string, string[]>>(
+    {}
+  );
 
   useEffect(() => {
     if (schedule?.scheduleStartDate && calendarRef.current) {
@@ -93,28 +52,9 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
       }, 0);
     }
   }, [schedule?.scheduleStartDate]);
-  
-  const getPlugins = () => {
-    const plugins = [dayGridPlugin];
-
-    plugins.push(interactionPlugin);
-    return plugins;
-  };
-
-  const getShiftById = (id: string) => {
-    return schedule?.shifts?.find((shift: { id: string }) => id === shift.id);
-  };
-
-  const getAssigmentById = (id: string) => {
-    return schedule?.assignments?.find((assign) => id === assign.id);
-  };
-
-  const getStaffById = (id: string) => {
-    return schedule?.staffs?.find((staff) => id === staff.id);
-  };
 
   const validDates = () => {
-    const dates = [];
+    const dates: string[] = [];
     let currentDate = dayjs(schedule.scheduleStartDate);
     while (
       currentDate.isBefore(schedule.scheduleEndDate) ||
@@ -127,27 +67,14 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     return dates;
   };
 
-  const getDatesBetween = (startDate: string, endDate: string) => {
-    const dates = [];
-    const start = dayjs(startDate, "DD.MM.YYYY").toDate();
-    const end = dayjs(endDate, "DD.MM.YYYY").toDate();
-    const current = new Date(start);
-
-    while (current <= end) {
-      dates.push(dayjs(current).format("DD-MM-YYYY"));
-      current.setDate(current.getDate() + 1);
-    }
-
-    return dates;
-  };
-
   const generateStaffBasedCalendar = () => {
     const works: EventInput[] = [];
 
     // seçili staff'ın event'lerini filtrele
-  const staffAssignments = schedule?.assignments?.filter(
-    assignment => assignment.staffId === selectedStaffId
-  ) || [];
+    const staffAssignments =
+      schedule?.assignments?.filter(
+        (assignment) => assignment.staffId === selectedStaffId
+      ) || [];
 
     for (let i = 0; i < staffAssignments.length; i++) {
       const className = schedule?.shifts?.findIndex(
@@ -161,13 +88,13 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
 
       const work = {
         id: staffAssignments[i]?.id,
-        title: getShiftById(staffAssignments[i]?.shiftId)?.name,
+        title: getShiftById(staffAssignments[i]?.shiftId, schedule)?.name,
         duration: "01:00",
         date: assignmentDate,
         staffId: staffAssignments[i]?.staffId,
         shiftId: staffAssignments[i]?.shiftId,
-        className: `event ${classes[className]} ${
-          getAssigmentById(staffAssignments[i]?.id)?.isUpdated
+        className: `event ${getColorClass(className)} ${
+          getAssigmentById(staffAssignments[i]?.id, schedule)?.isUpdated
             ? "highlight"
             : ""
         } ${!isValidDate ? "invalid-date" : ""}`,
@@ -182,26 +109,63 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
       dayjs(schedule.scheduleStartDate).format("DD.MM.YYYY"),
       dayjs(schedule.scheduleEndDate).format("DD.MM.YYYY")
     );
-    let highlightedDates: string[] = [];
+    const newHighlightedDates: string[] = [];
 
     dates.forEach((date) => {
       const transformedDate = dayjs(date, "DD-MM-YYYY").format("DD.MM.YYYY");
-      if (offDays?.includes(transformedDate)) highlightedDates.push(date);
+      if (offDays?.includes(transformedDate)) newHighlightedDates.push(date);
     });
 
-    setHighlightedDates(highlightedDates);
+    setHighlightedDates(newHighlightedDates);
     setEvents(works);
+  };
+
+  // Her tarih için çakışan personeli bul
+  const findOverlappingStaff = () => {
+    // Çakışmaları sıfırla
+    const overlaps: Record<string, string[]> = {};
+
+    if (!schedule?.assignments || !selectedStaffId) return;
+
+    // Mevcut personel atamalarını al
+    const currentStaffAssignments = schedule.assignments
+      .filter((assignment) => assignment.staffId === selectedStaffId)
+      .map((assignment) => {
+        const date = dayjs.utc(assignment.shiftStart).format("YYYY-MM-DD");
+        return date;
+      });
+
+    // Çakışmalar için diğer tüm personel atamalarını kontrol et
+    schedule.assignments.forEach((assignment) => {
+      // Mevcut personelse atla
+      if (assignment.staffId === selectedStaffId) return;
+
+      const date = dayjs.utc(assignment.shiftStart).format("YYYY-MM-DD");
+
+      // Bu tarih seçilen personel tarafından da çalışılıyorsa
+      if (currentStaffAssignments.includes(date)) {
+        if (!overlaps[date]) {
+          overlaps[date] = [];
+        }
+        // Bu personeli çakışmalara ekle (eğer zaten yoksa)
+        if (!overlaps[date].includes(assignment.staffId)) {
+          overlaps[date].push(assignment.staffId);
+        }
+      }
+    });
+
+    setStaffOverlaps(overlaps);
   };
 
   useEffect(() => {
     setSelectedStaffId(schedule?.staffs?.[0]?.id);
     generateStaffBasedCalendar();
+    findOverlappingStaff();
     //Burası schedule startDate varsa takvimin başlangıç tarihi güncellenmesi için
     if (schedule?.scheduleStartDate && calendarRef.current) {
       const startDate = dayjs(schedule.scheduleStartDate).toDate();
       setInitialDate(startDate);
       setTimeout(() => {
-        
         calendarRef?.current?.getApi().gotoDate(startDate);
       }, 0);
     }
@@ -209,94 +173,72 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
 
   useEffect(() => {
     generateStaffBasedCalendar();
+    findOverlappingStaff();
   }, [selectedStaffId]);
 
-  const RenderEventContent = ({ eventInfo }: any) => {
-    return (
-      <div className="event-content">
-        <p>{eventInfo.event.title}</p>
-      </div>
-    );
-  };
-
+  // Program verileri değiştiğinde çakışmaları güncellemek için ayrı bir etki
+  useEffect(() => {
+    if (selectedStaffId) {
+      findOverlappingStaff();
+    }
+  }, [schedule?.assignments, selectedStaffId]);
 
   const handleStaffSelection = (staffId: string) => {
     setSelectedStaffId(staffId);
-    
+
     // Staff değişitiğinde takvimin başlangıç tarihi güncellenmesi
     if (calendarRef.current && schedule?.scheduleStartDate) {
-      calendarRef.current.getApi().gotoDate(dayjs(schedule.scheduleStartDate).toDate());
+      calendarRef.current
+        .getApi()
+        .gotoDate(dayjs(schedule.scheduleStartDate).toDate());
     }
   };
-//popup açma 
+
+  //popup açma
   const handleEventClick = (info: any) => {
     const eventId = info.event.id;
-    const assignment = getAssigmentById(eventId);
-    
+    const assignment = getAssigmentById(eventId, schedule);
+
     if (assignment) {
-      const shift = getShiftById(assignment.shiftId);
-      const staff = getStaffById(assignment.staffId);
-      
+      const shift = getShiftById(assignment.shiftId, schedule);
+      const staff = getStaffById(assignment.staffId, schedule);
+
       setSelectedEvent({
         id: eventId,
-        title: shift?.name || 'Unknown Shift',
-        date: dayjs.utc(assignment.shiftStart).format('YYYY-MM-DD'),
-        startTime: dayjs.utc(assignment.shiftStart).format('HH:mm'),
-        endTime: dayjs.utc(assignment.shiftEnd).format('HH:mm'),
-        staffName: staff?.name || 'Unknown Staff'
+        title: shift?.name || "Unknown Shift",
+        date: dayjs.utc(assignment.shiftStart).format("YYYY-MM-DD"),
+        startTime: dayjs.utc(assignment.shiftStart).format("HH:mm"),
+        endTime: dayjs.utc(assignment.shiftEnd).format("HH:mm"),
+        staffName: staff?.name || "Unknown Staff",
       });
     }
   };
+
   //popup kapama
   const closeEventPopup = () => {
     setSelectedEvent(null);
   };
+
   return (
     <div className="calendar-section">
       <div className="calendar-wrapper">
-        <div className="staff-list">
-          {schedule?.staffs?.map((staff: any) => (
-            <div
-              key={staff.id}
-              onClick={() => handleStaffSelection(staff.id)}
-              className={`staff ${
-                staff.id === selectedStaffId ? "active" : ""
-              }`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="20px"
-                viewBox="0 -960 960 960"
-                width="20px"
-              >
-                <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17-62.5t47-43.5q60-30 124.5-46T480-440q67 0 131.5 16T736-378q30 15 47 43.5t17 62.5v112H160Zm320-400q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm160 228v92h80v-32q0-11-5-20t-15-14q-14-8-29.5-14.5T640-332Zm-240-21v53h160v-53q-20-4-40-5.5t-40-1.5q-20 0-40 1.5t-40 5.5ZM240-240h80v-92q-15 5-30.5 11.5T260-306q-10 5-15 14t-5 20v32Zm400 0H320h320ZM480-640Z" />
-              </svg>
-              <span>{staff.name}</span>
-            </div>
-          ))}
-        </div>
-        <FullCalendar
+        <StaffList
+          staffs={schedule?.staffs || []}
+          selectedStaffId={selectedStaffId}
+          onStaffSelect={handleStaffSelection}
+        />
+        <FullCalendarComponent
           ref={calendarRef}
-          locale={auth.language}
-          plugins={getPlugins()}
-          contentHeight={400}
-          handleWindowResize={true}
-          selectable={true}
-          editable={true}
-          eventOverlap={true}
-          eventDurationEditable={false}
-          eventClick={handleEventClick}
-          initialView="dayGridMonth"
+          language={auth.language}
           initialDate={initialDate}
           events={events}
-          firstDay={1}
-          dayMaxEventRows={4}
-          fixedWeekCount={true}
-          showNonCurrentDates={true}
-          eventContent={(eventInfo: any) => (
-            <RenderEventContent eventInfo={eventInfo} />
-          )}
-          datesSet={(info: any) => {
+          schedule={schedule}
+          selectedStaffId={selectedStaffId}
+          highlightedDates={highlightedDates}
+          staffOverlaps={staffOverlaps}
+          validDates={validDates}
+          onEventClick={handleEventClick}
+          onDatesSet={(info) => {
             const prevButton = document.querySelector(
               ".fc-prev-button"
             ) as HTMLButtonElement;
@@ -328,29 +270,10 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
             if (endDiff < 0 && endDiff > -32) nextButton.disabled = true;
             else nextButton.disabled = false;
           }}
-          dayCellContent={({ date }) => {
-            const found = validDates().includes(
-              dayjs(date).format("YYYY-MM-DD")
-            );
-            const isHighlighted = highlightedDates.includes(
-              dayjs(date).format("DD-MM-YYYY")
-            );
-
-            return (
-              <div
-                className={`${found ? "" : "date-range-disabled"} ${
-                  isHighlighted ? "highlighted-date-orange" : ""
-                } highlightedPair`}
-              >
-                {dayjs(date).date()}
-              </div>
-            );
-          }}
         />
         {selectedEvent && (
-          
-  <EventDetailsPopup event={selectedEvent} onClose={closeEventPopup} />
-)}
+          <EventDetailsPopup event={selectedEvent} onClose={closeEventPopup} />
+        )}
       </div>
     </div>
   );

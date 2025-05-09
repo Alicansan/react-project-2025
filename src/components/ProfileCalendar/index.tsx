@@ -19,14 +19,12 @@ const ProfileCalendar = () => {
 
   const auth = useSelector(getAuthUser);
   const schedule = useSelector(getSchedule);
+  console.log(schedule);
 
   useEffect(() => {
     dispatch(setProfile() as any);
     dispatch(fetchSchedule() as any);
   }, []);
-
- 
-
 
   return (
     <div className="profile-calendar-container">
